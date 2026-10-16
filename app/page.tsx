@@ -67,39 +67,58 @@ export default function HomePage() {
       <main className="app-shell">
         {/* HEADER */}
         <header className="header">
-          <div className="header-top">
-            <div className="brand">
-              <div className="brand-icon">
-                <Store size={18} color="white" />
-              </div>
-              <div>
-                <div className="brand-name">
-                  Van<span className="accent">313</span>
+          <div className="header-inner">
+            <div className="header-top">
+              <div className="brand">
+                <div className="brand-icon">
+                  <Store size={18} color="white" />
                 </div>
-                <div className="brand-sub">Premium Digital Store</div>
+                <div>
+                  <div className="brand-name">
+                    Van<span className="accent">313</span>
+                  </div>
+                  <div className="brand-sub">Premium Digital Store</div>
+                </div>
+              </div>
+
+              {/* Desktop Nav */}
+              <nav className="desktop-nav">
+                <a href="/" className="desktop-nav-link active">Home</a>
+                <a href="/products" className="desktop-nav-link">Products</a>
+                <a href="/admin" className="desktop-nav-link">Admin</a>
+                <a
+                  href={`https://wa.me/${waNumber}?text=${encodeURIComponent('Halo, saya ingin memesan produk Van313 Store')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-gold"
+                  style={{ padding: '8px 18px', fontSize: 11 }}
+                >
+                  <MessageCircle size={14} /> Chat Kami
+                </a>
+              </nav>
+
+              <div className="header-actions">
+                <button className="icon-btn" onClick={() => showToast('Notifikasi')}>
+                  <Bell size={20} />
+                  <span className="badge-dot" />
+                </button>
               </div>
             </div>
-            <div className="header-actions">
-              <button className="icon-btn" onClick={() => showToast('Notifikasi')}>
-                <Bell size={20} />
-                <span className="badge-dot" />
+
+            <div className="search-wrap">
+              <div className="search-box">
+                <Search size={16} />
+                <input
+                  type="text"
+                  placeholder="Search products, templates..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <button className="filter-btn" onClick={() => { setActiveCat(''); setSearch(''); }}>
+                <SlidersHorizontal size={18} />
               </button>
             </div>
-          </div>
-
-          <div className="search-wrap">
-            <div className="search-box">
-              <Search size={16} />
-              <input
-                type="text"
-                placeholder="Search products, templates..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <button className="filter-btn" onClick={() => { setActiveCat(''); setSearch(''); }}>
-              <SlidersHorizontal size={18} />
-            </button>
           </div>
         </header>
 
