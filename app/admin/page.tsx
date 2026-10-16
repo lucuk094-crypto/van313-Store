@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Lock, Eye, EyeOff, Shield, ArrowLeft, Store } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -14,98 +15,97 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
-
       const data = await res.json();
-
       if (data.success) {
         localStorage.setItem('van313_admin', 'true');
-        localStorage.setItem('van313_admin_ts', Date.now().toString());
         router.push('/admin/dashboard');
       } else {
         setError('Password salah!');
       }
     } catch {
-      setError('Terjadi kesalahan. Coba lagi.');
+      setError('Terjadi kesalahan.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="admin-page" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="admin-header" style={{ textAlign: 'center', borderRadius: '0 0 23px 23px' }}>
-        <div style={{ fontSize: 50, marginBottom: 8 }}>🔐</div>
-        <div className="logo" style={{ fontSize: 28 }}>
-          V<span className="accent">313</span>
+    <div className="admin-shell">
+      <div className="admin-header">
+        <div className="header-top">
+          <button className="icon-btn" onClick={() => window.location.href = '/'}>
+            <ArrowLeft size={20} />
+          </button>
+          <div style={{ flex: 1, textAlign: 'center' }}>
+            <div style={{ fontSize: 16, fontWeight: 800 }}>Admin Panel</div>
+          </div>
+          <div style={{ width: 40 }} />
         </div>
-        <div className="subtitle" style={{ marginTop: 6 }}>ADMIN DASHBOARD</div>
       </div>
 
-      {/* Login Form */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px 0' }}>
-        <div className="admin-card" style={{ padding: 24 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, textAlign: 'center' }}>
-            Selamat Datang 👋
-          </h2>
-          <p style={{ fontSize: 13, color: '#566174', textAlign: 'center', marginBottom: 24 }}>
-            Masukkan password untuk mengakses dashboard
-          </p>
+      <div style={{ padding: 20, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 120px)' }}>
+        <div className="admin-card" style={{ width: '100%', maxWidth: 380, padding: 28 }}>
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <div style={{
+              width: 56, height: 56, borderRadius: 16,
+              background: 'linear-gradient(135deg, #C8954C, #A07836)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              margin: '0 auto 16px',
+              boxShadow: '0 4px 16px rgba(200, 149, 76, 0.3)',
+            }}>
+              <Shield size={26} color="white" />
+            </div>
+            <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4, letterSpacing: '-0.3px' }}>
+              Selamat Datang
+            </h2>
+            <p style={{ fontSize: 13, color: '#5A6178' }}>
+              Masukkan password untuk mengakses dashboard
+            </p>
+          </div>
 
           <form onSubmit={handleLogin}>
             <div style={{ marginBottom: 16 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: '#273449', marginBottom: 8, display: 'block' }}>
+              <label style={{ fontSize: 12, fontWeight: 700, color: '#1A1A2E', marginBottom: 6, display: 'block', letterSpacing: '-0.2px' }}>
                 Password Admin
               </label>
               <div style={{ position: 'relative' }}>
+                <div style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: '#B0A898' }}>
+                  <Lock size={16} />
+                </div>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password..."
                   className="admin-input"
-                  style={{ paddingRight: 48 }}
+                  style={{ paddingLeft: 40, paddingRight: 44 }}
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPw(!showPw)}
                   style={{
-                    position: 'absolute',
-                    right: 12,
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    background: 'none',
-                    border: 'none',
-                    color: '#7a8493',
-                    fontSize: 18,
+                    position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                    color: '#B0A898', display: 'flex',
                   }}
                 >
-                  <i className={showPassword ? 'ri-eye-off-line' : 'ri-eye-line'}></i>
+                  {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div
-                style={{
-                  background: '#fef2f2',
-                  border: '1px solid #fecaca',
-                  borderRadius: 12,
-                  padding: '10px 14px',
-                  marginBottom: 16,
-                  fontSize: 13,
-                  color: '#dc2626',
-                  textAlign: 'center',
-                }}
-              >
+              <div style={{
+                background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 12,
+                padding: '10px 14px', marginBottom: 16, fontSize: 12, color: '#DC2626',
+                textAlign: 'center', fontWeight: 600,
+              }}>
                 {error}
               </div>
             )}
@@ -113,38 +113,23 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="primary-btn"
+              className="btn-gold"
               style={{
-                width: '100%',
-                padding: '14px',
-                fontSize: 15,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
+                width: '100%', padding: '14px', fontSize: 13,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                 opacity: loading ? 0.6 : 1,
               }}
             >
-              {loading ? (
-                <div className="loading-spinner" style={{ width: 20, height: 20, borderWidth: 2, margin: 0 }}></div>
-              ) : (
-                <>
-                  <i className="ri-lock-line"></i>
-                  Masuk
-                </>
-              )}
+              {loading ? <div className="spinner" style={{ width: 18, height: 18, borderWidth: 2, margin: 0, borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'white' }} /> : <><Lock size={15} /> Masuk</>}
             </button>
           </form>
         </div>
-      </div>
 
-      {/* Back */}
-      <div style={{ textAlign: 'center', paddingBottom: 20 }}>
         <button
-          onClick={() => (window.location.href = '/')}
-          style={{ background: 'none', border: 'none', color: '#1555a9', fontSize: 13, fontWeight: 600 }}
+          onClick={() => window.location.href = '/'}
+          style={{ marginTop: 20, fontSize: 12, fontWeight: 600, color: '#C8954C', display: 'flex', alignItems: 'center', gap: 4 }}
         >
-          ← Kembali ke Beranda
+          <ArrowLeft size={14} /> Kembali ke Beranda
         </button>
       </div>
     </div>
