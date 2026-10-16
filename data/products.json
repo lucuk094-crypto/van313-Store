@@ -1,0 +1,46 @@
+[
+  {
+    "id": "1",
+    "name": "Portfolio Website Template",
+    "description": "Template website portfolio modern dan responsif dengan desain clean. Cocok untuk developer, designer, dan freelancer. Dilengkapi dengan dark mode, animasi smooth, dan SEO optimized.",
+    "price": "Rp 49.000",
+    "thumbnail": "",
+    "demoUrl": "https://example.com/demo1",
+    "category": "Website Template",
+    "features": ["Responsive Design", "Dark Mode", "SEO Optimized", "Fast Loading", "Easy Customization"],
+    "createdAt": "2026-10-01"
+  },
+  {
+    "id": "2",
+    "name": "E-Commerce Landing Page",
+    "description": "Landing page e-commerce profesional dengan section product showcase, testimonial, dan CTA yang konversif. Desain modern dengan glassmorphism effect.",
+    "price": "Rp 59.000",
+    "thumbnail": "",
+    "demoUrl": "https://example.com/demo2",
+    "category": "Landing Page",
+    "features": ["Glassmorphism UI", "Product Showcase", "Testimonial Section", "CTA Optimized", "Mobile First"],
+    "createdAt": "2026-10-05"
+  },
+  {
+    "id": "3",
+    "name": "Admin Dashboard Template",
+    "description": "Dashboard admin lengkap dengan sidebar navigation, chart analytics, data table, dan form components. Menggunakan Next.js dan Tailwind CSS.",
+    "price": "Rp 79.000",
+    "thumbnail": "",
+    "demoUrl": "https://example.com/demo3",
+    "category": "Dashboard",
+    "features": ["Sidebar Navigation", "Chart Analytics", "Data Table", "Form Components", "Authentication Ready"],
+    "createdAt": "2026-10-10"
+  },
+  {
+    "id": "4",
+    "name": "SaaS Landing Page",
+    "description": "Landing page SaaS profesional dengan pricing table, feature comparison, FAQ section, dan integrasi payment gateway. Siap digunakan untuk startup Anda.",
+    "price": "Rp 69.000",
+    "thumbnail": "",
+    "demoUrl": "https://example.com/demo4",
+    "category": "Landing Page",
+    "features": ["Pricing Table", "Feature Comparison", "FAQ Section", "Payment Ready", "A/B Test Friendly"],
+    "createdAt": "2026-10-12"
+  }
+]
