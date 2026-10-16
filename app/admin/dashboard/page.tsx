@@ -2,12 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Plus, Edit3, Trash2, Save, X, LogOut,
-  Package, Settings, Eye, Tag, Link as LinkIcon,
-  MessageCircle, FileText, Layers, Grip
-} from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -24,14 +18,14 @@ interface Product {
   createdAt: string;
 }
 
-const emptyProduct: Omit<Product, 'id' | 'createdAt'> = {
+const emptyProduct = {
   name: '',
   description: '',
   price: '',
   thumbnail: '',
   demoUrl: '',
   category: 'Website Template',
-  features: [],
+  features: [] as string[],
 };
 
 export default function AdminDashboard() {
@@ -51,6 +45,7 @@ export default function AdminDashboard() {
     description: '',
     whatsappNumber: '',
   });
+  const [toast, setToast] = useState({ show: false, message: '' });
 
   useEffect(() => {
     const isAuth = localStorage.getItem('van313_admin');
@@ -67,6 +62,11 @@ export default function AdminDashboard() {
       });
     }
   }, [config]);
+
+  const showToast = (message: string) => {
+    setToast({ show: true, message });
+    setTimeout(() => setToast({ show: false, message: '' }), 2200);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('van313_admin');
@@ -96,26 +96,11 @@ export default function AdminDashboard() {
     setShowForm(true);
   };
 
-  const addFeature = () => {
-    if (featureInput.trim()) {
-      const newFeatures = featureInput.split(',').map((f) => f.trim()).filter(Boolean);
-      setForm({ ...form, features: newFeatures });
-    }
-  };
-
   const handleSaveProduct = async () => {
     setSaving(true);
     try {
-      const features = featureInput
-        .split(',')
-        .map((f) => f.trim())
-        .filter(Boolean);
-
-      const body = {
-        ...form,
-        features,
-        ...(editing ? { id: editing.id } : {}),
-      };
+      const features = featureInput.split(',').map((f) => f.trim()).filter(Boolean);
+      const body = { ...form, features, ...(editing ? { id: editing.id } : {}) };
 
       const res = await fetch('/api/products', {
         method: editing ? 'PUT' : 'POST',
@@ -129,9 +114,11 @@ export default function AdminDashboard() {
         setEditing(null);
         setForm(emptyProduct);
         setFeatureInput('');
+        showToast(editing ? 'Produk berhasil diupdate!' : 'Produk berhasil ditambahkan!');
       }
     } catch (err) {
       console.error(err);
+      showToast('Gagal menyimpan produk');
     } finally {
       setSaving(false);
     }
@@ -142,6 +129,7 @@ export default function AdminDashboard() {
     try {
       await fetch(`/api/products?id=${id}`, { method: 'DELETE' });
       mutate('/api/products');
+      showToast('Produk berhasil dihapus');
     } catch (err) {
       console.error(err);
     }
@@ -156,7 +144,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(configForm),
       });
       mutate('/api/config');
-      alert('Konfigurasi berhasil disimpan!');
+      showToast('Pengaturan berhasil disimpan!');
     } catch (err) {
       console.error(err);
     } finally {
@@ -165,348 +153,398 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen px-4 pb-20">
-      <div className="max-w-6xl mx-auto">
+    <>
+      <div className="admin-page">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-6 mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              Admin <span className="text-accent">Dashboard</span>
-            </h1>
-            <p className="text-vanilla/40 text-sm mt-1">Kelola produk dan pengaturan toko Anda.</p>
+        <div className="admin-header">
+          <div className="topbar">
+            <button className="icon-btn" onClick={() => (window.location.href = '/')}>
+              <i className="ri-arrow-left-line"></i>
+            </button>
+            <div style={{ textAlign: 'center', flex: 1 }}>
+              <div className="logo" style={{ fontSize: 20 }}>
+                Admin <span className="accent">Panel</span>
+              </div>
+              <div className="subtitle">MANAGE YOUR STORE</div>
+            </div>
+            <button className="icon-btn" onClick={handleLogout}>
+              <i className="ri-logout-box-r-line"></i>
+            </button>
           </div>
-          <button
-            onClick={handleLogout}
-            className="btn-glass px-4 py-2.5 rounded-xl text-sm flex items-center gap-2 text-red-400 hover:text-red-300"
-          >
-            <LogOut size={15} />
-            Keluar
-          </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-8">
+        <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
           <button
+            className={`admin-tab ${tab === 'products' ? 'active' : ''}`}
             onClick={() => setTab('products')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${
-              tab === 'products'
-                ? 'bg-accent/20 text-accent border border-accent/30'
-                : 'glass text-vanilla/50 hover:text-vanilla'
-            }`}
           >
-            <Package size={15} />
-            Produk ({products?.length || 0})
+            📦 Produk ({products?.length || 0})
           </button>
           <button
+            className={`admin-tab ${tab === 'settings' ? 'active' : ''}`}
             onClick={() => setTab('settings')}
-            className={`px-5 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${
-              tab === 'settings'
-                ? 'bg-accent/20 text-accent border border-accent/30'
-                : 'glass text-vanilla/50 hover:text-vanilla'
-            }`}
           >
-            <Settings size={15} />
-            Pengaturan
+            ⚙️ Pengaturan
           </button>
         </div>
 
         {/* ============ PRODUCTS TAB ============ */}
         {tab === 'products' && (
           <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold">Daftar Produk</h2>
-              <button
-                onClick={openNewForm}
-                className="btn-primary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2"
-              >
-                <Plus size={15} />
-                Tambah Produk
-              </button>
-            </div>
+            <button
+              className="primary-btn"
+              style={{ width: '100%', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              onClick={openNewForm}
+            >
+              <i className="ri-add-line"></i>
+              Tambah Produk Baru
+            </button>
 
-            {isLoading && (
-              <div className="text-center py-16">
-                <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mx-auto" />
-              </div>
-            )}
+            {isLoading && <div className="loading-spinner"></div>}
 
-            <div className="grid gap-4">
-              {products?.map((product: Product) => (
-                <motion.div
-                  key={product.id}
-                  layout
-                  className="glass-card rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
-                >
-                  {/* Thumbnail */}
-                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center">
-                    {product.thumbnail ? (
-                      <img src={product.thumbnail} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <Tag size={20} className="text-accent" />
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-vanilla truncate">{product.name}</h3>
-                      <span className="badge text-xs flex-shrink-0">{product.category}</span>
+            {products && products.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {products.map((product: Product) => (
+                  <div key={product.id} className="admin-card" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div
+                      style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 12,
+                        background: '#f8fafc',
+                        display: 'grid',
+                        placeItems: 'center',
+                        fontSize: 24,
+                        flexShrink: 0,
+                        border: '1px solid #e9edf3',
+                      }}
+                    >
+                      {product.thumbnail ? (
+                        <img
+                          src={product.thumbnail}
+                          alt=""
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 12 }}
+                        />
+                      ) : (
+                        '💻'
+                      )}
                     </div>
-                    <p className="text-vanilla/40 text-sm truncate">{product.description}</p>
-                    <span className="text-accent font-bold text-sm mt-1 inline-block">{product.price}</span>
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 flex-shrink-0">
-                    <button
-                      onClick={() => openEditForm(product)}
-                      className="p-2.5 rounded-xl glass hover:bg-accent/10 transition-colors"
-                      title="Edit"
-                    >
-                      <Edit3 size={16} className="text-accent" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(product.id)}
-                      className="p-2.5 rounded-xl glass hover:bg-red-400/10 transition-colors"
-                      title="Hapus"
-                    >
-                      <Trash2 size={16} className="text-red-400" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {product.name}
+                      </div>
+                      <div style={{ fontSize: 12, color: '#7a8493', marginBottom: 2 }}>
+                        <span className="product-badge" style={{ fontSize: 8, padding: '3px 6px' }}>{product.category}</span>
+                      </div>
+                      <div style={{ fontSize: 15, fontWeight: 900, color: '#1264e8' }}>
+                        {product.price}
+                      </div>
+                    </div>
 
-            {products && products.length === 0 && (
-              <div className="text-center py-16">
-                <Package size={48} className="mx-auto text-vanilla/15 mb-4" />
-                <p className="text-vanilla/30 mb-4">Belum ada produk.</p>
-                <button onClick={openNewForm} className="btn-primary px-5 py-2.5 rounded-xl text-sm">
-                  Tambah Produk Pertama
-                </button>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        onClick={() => openEditForm(product)}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          border: '1px solid #e9edf3',
+                          background: '#f8fafc',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 16,
+                          color: '#1264e8',
+                        }}
+                      >
+                        <i className="ri-pencil-line"></i>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          border: '1px solid #fecaca',
+                          background: '#fef2f2',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 16,
+                          color: '#dc2626',
+                        }}
+                      >
+                        <i className="ri-delete-bin-line"></i>
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              !isLoading && (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#687386' }}>
+                  <div style={{ fontSize: 50, marginBottom: 12 }}>📦</div>
+                  <p style={{ fontSize: 14, marginBottom: 16 }}>Belum ada produk.</p>
+                  <button className="primary-btn" onClick={openNewForm}>
+                    Tambah Produk Pertama
+                  </button>
+                </div>
+              )
             )}
           </div>
         )}
 
         {/* ============ SETTINGS TAB ============ */}
         {tab === 'settings' && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="glass-card rounded-2xl p-6 max-w-2xl"
-          >
-            <h2 className="text-lg font-semibold mb-6 flex items-center gap-2">
-              <Settings size={18} className="text-accent" />
+          <div className="admin-card">
+            <h3 style={{ fontSize: 16, fontWeight: 800, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 20 }}>⚙️</span>
               Pengaturan Toko
-            </h2>
+            </h3>
 
-            <div className="space-y-5">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label className="text-sm text-vanilla/50 mb-2 block">Nama Toko</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#273449', marginBottom: 6, display: 'block' }}>
+                  Nama Toko
+                </label>
                 <input
                   type="text"
                   value={configForm.storeName}
                   onChange={(e) => setConfigForm({ ...configForm, storeName: e.target.value })}
-                  className="input-glass py-3 rounded-xl"
+                  className="admin-input"
                 />
               </div>
               <div>
-                <label className="text-sm text-vanilla/50 mb-2 block">Tagline</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#273449', marginBottom: 6, display: 'block' }}>
+                  Tagline
+                </label>
                 <input
                   type="text"
                   value={configForm.tagline}
                   onChange={(e) => setConfigForm({ ...configForm, tagline: e.target.value })}
-                  className="input-glass py-3 rounded-xl"
+                  className="admin-input"
                 />
               </div>
               <div>
-                <label className="text-sm text-vanilla/50 mb-2 block">Deskripsi Toko</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#273449', marginBottom: 6, display: 'block' }}>
+                  Deskripsi
+                </label>
                 <textarea
                   value={configForm.description}
                   onChange={(e) => setConfigForm({ ...configForm, description: e.target.value })}
-                  className="input-glass py-3 rounded-xl"
+                  className="admin-textarea"
                   rows={3}
                 />
               </div>
               <div>
-                <label className="text-sm text-vanilla/50 mb-2 block">Nomor WhatsApp</label>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#273449', marginBottom: 6, display: 'block' }}>
+                  Nomor WhatsApp
+                </label>
                 <input
                   type="text"
                   value={configForm.whatsappNumber}
                   onChange={(e) => setConfigForm({ ...configForm, whatsappNumber: e.target.value })}
-                  placeholder="628xxxxxxxxxx"
-                  className="input-glass py-3 rounded-xl"
+                  placeholder="60109044199"
+                  className="admin-input"
                 />
-                <p className="text-vanilla/25 text-xs mt-1">Format: 628xxxxxxxxxx (tanpa + atau spasi)</p>
+                <p style={{ fontSize: 11, color: '#7a8493', marginTop: 4 }}>Format: 628xxxxxxxxxx (tanpa + atau spasi)</p>
               </div>
 
               <button
+                className="primary-btn"
                 onClick={handleSaveConfig}
                 disabled={saving}
-                className="btn-primary px-6 py-3 rounded-xl text-sm flex items-center gap-2"
+                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: saving ? 0.6 : 1 }}
               >
                 {saving ? (
-                  <div className="w-4 h-4 border-2 border-dark/30 border-t-dark rounded-full animate-spin" />
+                  <div className="loading-spinner" style={{ width: 18, height: 18, borderWidth: 2, margin: 0 }}></div>
                 ) : (
-                  <Save size={15} />
+                  <>
+                    <i className="ri-save-line"></i>
+                    Simpan Pengaturan
+                  </>
                 )}
-                Simpan Pengaturan
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
 
-        {/* ============ PRODUCT FORM MODAL ============ */}
-        <AnimatePresence>
-          {showForm && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-dark/80 backdrop-blur-sm flex items-start justify-center p-4 pt-20 overflow-y-auto"
-              onClick={(e) => e.target === e.currentTarget && setShowForm(false)}
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 30, scale: 0.95 }}
-                className="glass-strong rounded-3xl p-6 md:p-8 w-full max-w-2xl mb-10 glow-border"
-              >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold">
-                    {editing ? 'Edit Produk' : 'Tambah Produk Baru'}
-                  </h2>
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="p-2 rounded-xl hover:bg-white/5 transition-colors"
-                  >
-                    <X size={20} className="text-vanilla/50" />
-                  </button>
-                </div>
-
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-vanilla/50 mb-2 block">Nama Produk *</label>
-                      <input
-                        type="text"
-                        value={form.name}
-                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                        placeholder="e.g. Portfolio Template"
-                        className="input-glass py-3 rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-vanilla/50 mb-2 block">Harga *</label>
-                      <input
-                        type="text"
-                        value={form.price}
-                        onChange={(e) => setForm({ ...form, price: e.target.value })}
-                        placeholder="e.g. Rp 50.000"
-                        className="input-glass py-3 rounded-xl"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-vanilla/50 mb-2 block">Kategori</label>
-                    <input
-                      type="text"
-                      value={form.category}
-                      onChange={(e) => setForm({ ...form, category: e.target.value })}
-                      placeholder="e.g. Website Template"
-                      className="input-glass py-3 rounded-xl"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-vanilla/50 mb-2 block">Deskripsi *</label>
-                    <textarea
-                      value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
-                      placeholder="Deskripsi lengkap produk..."
-                      className="input-glass py-3 rounded-xl"
-                      rows={4}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-vanilla/50 mb-2 block">
-                      Fitur (pisahkan dengan koma)
-                    </label>
-                    <input
-                      type="text"
-                      value={featureInput}
-                      onChange={(e) => setFeatureInput(e.target.value)}
-                      onBlur={addFeature}
-                      placeholder="e.g. Responsive, Dark Mode, SEO Ready"
-                      className="input-glass py-3 rounded-xl"
-                    />
-                    {form.features.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {form.features.map((f, i) => (
-                          <span key={i} className="badge text-xs">{f}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm text-vanilla/50 mb-2 block">
-                        URL Thumbnail (opsional)
-                      </label>
-                      <input
-                        type="text"
-                        value={form.thumbnail}
-                        onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
-                        placeholder="https://..."
-                        className="input-glass py-3 rounded-xl"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-vanilla/50 mb-2 block">
-                        URL Demo (opsional)
-                      </label>
-                      <input
-                        type="text"
-                        value={form.demoUrl}
-                        onChange={(e) => setForm({ ...form, demoUrl: e.target.value })}
-                        placeholder="https://..."
-                        className="input-glass py-3 rounded-xl"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="accent-line my-6" />
-
-                <div className="flex gap-3 justify-end">
-                  <button
-                    onClick={() => setShowForm(false)}
-                    className="btn-glass px-5 py-2.5 rounded-xl text-sm"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleSaveProduct}
-                    disabled={saving || !form.name || !form.price}
-                    className="btn-primary px-6 py-2.5 rounded-xl text-sm flex items-center gap-2 disabled:opacity-40"
-                  >
-                    {saving ? (
-                      <div className="w-4 h-4 border-2 border-dark/30 border-t-dark rounded-full animate-spin" />
-                    ) : (
-                      <Save size={15} />
-                    )}
-                    {editing ? 'Simpan Perubahan' : 'Tambah Produk'}
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div style={{ height: 30 }}></div>
       </div>
-    </div>
+
+      {/* ============ PRODUCT FORM MODAL ============ */}
+      {showForm && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 50,
+            background: 'rgba(6, 19, 38, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            padding: '20px 16px',
+            overflowY: 'auto',
+          }}
+          onClick={(e) => e.target === e.currentTarget && setShowForm(false)}
+        >
+          <div
+            className="admin-card"
+            style={{
+              width: '100%',
+              maxWidth: 480,
+              padding: 24,
+              marginTop: 20,
+              marginBottom: 20,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <h2 style={{ fontSize: 18, fontWeight: 800 }}>
+                {editing ? '✏️ Edit Produk' : '➕ Tambah Produk'}
+              </h2>
+              <button
+                onClick={() => setShowForm(false)}
+                style={{ background: '#f1f5f9', border: 0, borderRadius: 10, width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>Nama *</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    placeholder="Portfolio Template"
+                    className="admin-input"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>Harga *</label>
+                  <input
+                    type="text"
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    placeholder="Rp 50.000"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>Kategori</label>
+                <input
+                  type="text"
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  placeholder="Website Template"
+                  className="admin-input"
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>Deskripsi *</label>
+                <textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Deskripsi lengkap produk..."
+                  className="admin-textarea"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>
+                  Fitur (pisahkan koma)
+                </label>
+                <input
+                  type="text"
+                  value={featureInput}
+                  onChange={(e) => setFeatureInput(e.target.value)}
+                  placeholder="Responsive, Dark Mode, SEO"
+                  className="admin-input"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>URL Thumbnail</label>
+                  <input
+                    type="text"
+                    value={form.thumbnail}
+                    onChange={(e) => setForm({ ...form, thumbnail: e.target.value })}
+                    placeholder="https://..."
+                    className="admin-input"
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: '#273449', marginBottom: 4, display: 'block' }}>URL Demo</label>
+                  <input
+                    type="text"
+                    value={form.demoUrl}
+                    onChange={(e) => setForm({ ...form, demoUrl: e.target.value })}
+                    placeholder="https://..."
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ height: 1, background: '#e9edf3', margin: '20px 0' }}></div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setShowForm(false)}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: 25,
+                  border: '1px solid #e9edf3',
+                  background: 'white',
+                  color: '#566174',
+                  fontWeight: 600,
+                  fontSize: 14,
+                }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleSaveProduct}
+                disabled={saving || !form.name || !form.price}
+                className="primary-btn"
+                style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  opacity: saving || !form.name || !form.price ? 0.5 : 1,
+                }}
+              >
+                {saving ? (
+                  <div className="loading-spinner" style={{ width: 18, height: 18, borderWidth: 2, margin: 0 }}></div>
+                ) : (
+                  <>
+                    <i className="ri-save-line"></i>
+                    {editing ? 'Simpan' : 'Tambah'}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast */}
+      <div className="toast" style={{ display: toast.show ? 'block' : 'none' }}>
+        {toast.message}
+      </div>
+    </>
   );
 }

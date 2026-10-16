@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Lock, Eye, EyeOff, Shield } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const [password, setPassword] = useState('');
@@ -41,70 +39,114 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="glass-strong rounded-3xl p-8 md:p-10 w-full max-w-md glow-border"
-      >
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-accent/10 flex items-center justify-center mb-4 glow-accent">
-            <Shield size={32} className="text-accent" />
-          </div>
-          <h1 className="text-2xl font-bold mb-1">Admin Dashboard</h1>
-          <p className="text-vanilla/40 text-sm">Masukkan password untuk melanjutkan</p>
+    <div className="admin-page" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {/* Header */}
+      <div className="admin-header" style={{ textAlign: 'center', borderRadius: '0 0 23px 23px' }}>
+        <div style={{ fontSize: 50, marginBottom: 8 }}>🔐</div>
+        <div className="logo" style={{ fontSize: 28 }}>
+          V<span className="accent">313</span>
         </div>
+        <div className="subtitle" style={{ marginTop: 6 }}>ADMIN DASHBOARD</div>
+      </div>
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="text-sm text-vanilla/50 mb-2 block">Password</label>
-            <div className="relative">
-              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-vanilla/30" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Masukkan password admin"
-                className="input-glass pl-11 pr-12 py-3.5 rounded-2xl"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-vanilla/30 hover:text-vanilla/60 transition-colors"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+      {/* Login Form */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px 0' }}>
+        <div className="admin-card" style={{ padding: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 6, textAlign: 'center' }}>
+            Selamat Datang 👋
+          </h2>
+          <p style={{ fontSize: 13, color: '#566174', textAlign: 'center', marginBottom: 24 }}>
+            Masukkan password untuk mengakses dashboard
+          </p>
+
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: '#273449', marginBottom: 8, display: 'block' }}>
+                Password Admin
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan password..."
+                  className="admin-input"
+                  style={{ paddingRight: 48 }}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: 12,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#7a8493',
+                    fontSize: 18,
+                  }}
+                >
+                  <i className={showPassword ? 'ri-eye-off-line' : 'ri-eye-line'}></i>
+                </button>
+              </div>
             </div>
-          </div>
 
-          {error && (
-            <motion.p
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-red-400 text-sm text-center bg-red-400/10 py-2 rounded-xl"
-            >
-              {error}
-            </motion.p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="btn-primary w-full py-4 rounded-2xl text-base flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-dark/30 border-t-dark rounded-full animate-spin" />
-            ) : (
-              <>
-                <Lock size={16} />
-                Masuk
-              </>
+            {error && (
+              <div
+                style={{
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: 12,
+                  padding: '10px 14px',
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: '#dc2626',
+                  textAlign: 'center',
+                }}
+              >
+                {error}
+              </div>
             )}
-          </button>
-        </form>
-      </motion.div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="primary-btn"
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: 15,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              {loading ? (
+                <div className="loading-spinner" style={{ width: 20, height: 20, borderWidth: 2, margin: 0 }}></div>
+              ) : (
+                <>
+                  <i className="ri-lock-line"></i>
+                  Masuk
+                </>
+              )}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      {/* Back */}
+      <div style={{ textAlign: 'center', paddingBottom: 20 }}>
+        <button
+          onClick={() => (window.location.href = '/')}
+          style={{ background: 'none', border: 'none', color: '#1555a9', fontSize: 13, fontWeight: 600 }}
+        >
+          ← Kembali ke Beranda
+        </button>
+      </div>
     </div>
   );
 }

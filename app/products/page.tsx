@@ -1,120 +1,226 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { ShoppingBag, Search } from 'lucide-react';
 import { useState } from 'react';
-import ProductCard from '@/components/ProductCard';
-import ScrollReveal from '@/components/ScrollReveal';
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 export default function ProductsPage() {
   const { data: products, isLoading } = useSWR('/api/products', fetcher);
+  const { data: config } = useSWR('/api/config', fetcher);
   const [search, setSearch] = useState('');
-
-  const filtered = products?.filter(
-    (p: any) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.toLowerCase().includes(search.toLowerCase()) ||
-      p.description.toLowerCase().includes(search.toLowerCase())
-  );
+  const [activeCategory, setActiveCategory] = useState('');
 
   const categories = products
     ? Array.from(new Set(products.map((p: any) => p.category))) as string[]
     : [];
 
-  return (
-    <div className="min-h-screen px-4">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <ScrollReveal>
-          <div className="text-center mb-12 pt-8">
-            <span className="badge mb-4 inline-block">📦 CATALOG</span>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Semua <span className="text-accent">Produk</span>
-            </h1>
-            <p className="text-vanilla/40 max-w-lg mx-auto">
-              Jelajahi koleksi source code website premium kami. Setiap produk dilengkapi video tutorial.
-            </p>
-          </div>
-        </ScrollReveal>
+  const categoryIcons: Record<string, string> = {
+    'Website Template': '🌐',
+    'Landing Page': '📄',
+    'Dashboard': '📊',
+    'E-Commerce': '🛒',
+    'Blog': '✍️',
+    'Portfolio': '🎨',
+    'SaaS': '☁️',
+    'Mobile App': '📱',
+  };
 
-        {/* Search */}
-        <ScrollReveal delay={0.1}>
-          <div className="max-w-xl mx-auto mb-10">
-            <div className="relative">
-              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-vanilla/30" />
-              <input
-                type="text"
-                placeholder="Cari produk..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="input-glass pl-11 py-3.5 rounded-2xl w-full"
-              />
+  const waNumber = config?.whatsappNumber || '60109044199';
+
+  const filtered = products?.filter((p: any) => {
+    const matchCategory = !activeCategory || p.category === activeCategory;
+    const matchSearch =
+      (p.name + ' ' + p.category + ' ' + p.description).toLowerCase().includes(search.toLowerCase());
+    return matchCategory && matchSearch;
+  });
+
+  return (
+    <>
+      <main className="app">
+        {/* Header */}
+        <header className="header">
+          <div className="topbar">
+            <button className="icon-btn" onClick={() => (window.location.href = '/')}>
+              <i className="ri-arrow-left-line"></i>
+            </button>
+
+            <div style={{ textAlign: 'center' }}>
+              <div className="logo" style={{ fontSize: 20 }}>
+                All <span className="accent">Products</span>
+              </div>
+              <div className="subtitle">{products?.length || 0} ITEMS</div>
             </div>
+
+            <button className="icon-btn" style={{ opacity: 0, pointerEvents: 'none' }}>
+              <i className="ri-menu-line"></i>
+            </button>
           </div>
-        </ScrollReveal>
+
+          <div className="search-row">
+            <input
+              className="search-input"
+              type="search"
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button
+              className="filter-btn"
+              onClick={() => {
+                setActiveCategory('');
+                setSearch('');
+              }}
+            >
+              <i className="ri-filter-3-line"></i>
+            </button>
+          </div>
+        </header>
 
         {/* Categories */}
-        {categories.length > 0 && (
-          <ScrollReveal delay={0.15}>
-            <div className="flex flex-wrap justify-center gap-2 mb-10">
-              <button
-                onClick={() => setSearch('')}
-                className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 ${
-                  search === ''
-                    ? 'bg-accent/20 text-accent border border-accent/30'
-                    : 'glass text-vanilla/50 hover:text-vanilla'
-                }`}
-              >
-                Semua
-              </button>
-              {categories.map((cat: string) => (
-                <button
-                  key={cat}
-                  onClick={() => setSearch(cat)}
-                  className={`px-4 py-2 rounded-xl text-sm transition-all duration-300 ${
-                    search === cat
-                      ? 'bg-accent/20 text-accent border border-accent/30'
-                      : 'glass text-vanilla/50 hover:text-vanilla'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </ScrollReveal>
-        )}
+        <section className="categories">
+          <button
+            className={`category-btn ${activeCategory === '' ? 'active' : ''}`}
+            onClick={() => setActiveCategory('')}
+          >
+            <span className="category-icon">🔥</span>
+            All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              className={`category-btn ${activeCategory === cat ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat)}
+            >
+              <span className="category-icon">
+                {categoryIcons[cat] || '📦'}
+              </span>
+              {cat.length > 12 ? cat.slice(0, 12) + '…' : cat}
+            </button>
+          ))}
+        </section>
 
-        {/* Loading */}
-        {isLoading && (
-          <div className="text-center py-20">
-            <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-vanilla/30">Memuat produk...</p>
+        {/* Products */}
+        <section className="section" id="trending">
+          <div className="section-header">
+            <h2>
+              {activeCategory || 'All Products'}
+            </h2>
+            <button
+              className="view-all"
+              onClick={() => {
+                setActiveCategory('');
+                setSearch('');
+              }}
+            >
+              View All →
+            </button>
           </div>
-        )}
 
-        {/* Products Grid */}
-        {filtered && filtered.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-            {filtered.map((product: any, i: number) => (
-              <ProductCard key={product.id} product={product} index={i} />
-            ))}
-          </div>
-        )}
+          <div className="products-grid">
+            {isLoading && (
+              <div className="empty-state">
+                <div className="loading-spinner"></div>
+              </div>
+            )}
 
-        {/* Empty */}
-        {filtered && filtered.length === 0 && (
-          <div className="text-center py-20">
-            <ShoppingBag size={48} className="mx-auto text-vanilla/20 mb-4" />
-            <p className="text-vanilla/30 mb-2">Tidak ada produk ditemukan.</p>
-            <p className="text-vanilla/20 text-sm">
-              {search ? 'Coba kata kunci lain.' : 'Produk akan segera tersedia.'}
-            </p>
+            {filtered && filtered.length > 0
+              ? filtered.map((product: any, i: number) => {
+                  const badges = ['BESTSELLER', 'TRENDING', 'POPULAR', 'NEW'];
+                  const badge = badges[i % badges.length];
+                  const badgeColors: Record<string, string> = {
+                    BESTSELLER: '',
+                    TRENDING: 'purple',
+                    POPULAR: 'green',
+                    NEW: '',
+                  };
+
+                  return (
+                    <article
+                      key={product.id}
+                      className="product-card"
+                      onClick={() => (window.location.href = `/products/${product.id}`)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <span className={`product-badge ${badgeColors[badge] || ''}`}>
+                        {badge}
+                      </span>
+
+                      <div className="product-image">
+                        {product.thumbnail ? (
+                          <img src={product.thumbnail} alt={product.name} />
+                        ) : (
+                          <span>{categoryIcons[product.category] || '💻'}</span>
+                        )}
+                      </div>
+
+                      <h3>{product.name}</h3>
+
+                      <div className="rating">
+                        <span className="star">★</span> 4.8 (500+)
+                      </div>
+
+                      <div className="price">{product.price}</div>
+
+                      <button
+                        className="add-cart"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const msg = `Halo, saya tertarik dengan produk "${product.name}" dengan harga ${product.price}. Apakah masih tersedia?`;
+                          window.open(`https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+                        }}
+                      >
+                        <i className="ri-whatsapp-line"></i>
+                      </button>
+                    </article>
+                  );
+                })
+              : !isLoading && (
+                  <div className="empty-state">
+                    Produk tidak ditemukan. Coba kata kunci lain.
+                  </div>
+                )}
           </div>
-        )}
-      </div>
-    </div>
+        </section>
+
+        <div style={{ height: 20 }}></div>
+      </main>
+
+      {/* Bottom Nav */}
+      <nav className="bottom-nav">
+        <button className="nav-item" onClick={() => (window.location.href = '/')}>
+          <span className="nav-icon">⌂</span>
+          Home
+        </button>
+
+        <button className="nav-item active" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          <span className="nav-icon">▦</span>
+          Products
+        </button>
+
+        <button
+          className="nav-item shop"
+          onClick={() =>
+            window.open(
+              `https://wa.me/${waNumber}?text=${encodeURIComponent('Halo, saya ingin memesan produk')}`,
+              '_blank'
+            )
+          }
+        >
+          <span className="nav-icon">♧</span>
+          Shop
+        </button>
+
+        <button className="nav-item" onClick={() => (window.location.href = '/#promo')}>
+          <span className="nav-icon">◇</span>
+          Deals
+        </button>
+
+        <button className="nav-item" onClick={() => (window.location.href = '/admin')}>
+          <span className="nav-icon">♙</span>
+          Admin
+        </button>
+      </nav>
+    </>
   );
 }
