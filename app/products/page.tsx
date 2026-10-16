@@ -21,7 +21,7 @@ export default function ProductsPage() {
   );
 
   const categories = products
-    ? [...new Set(products.map((p: any) => p.category))]
+    ? Array.from(new Set(products.map((p: any) => p.category))) as string[]
     : [];
 
   return (
